@@ -12,11 +12,29 @@ parser = Parser()
 parser.set_language(RE_LANGUAGE)
 
 
-def regexes(file: str = "regexes.yaml"):
-    "iterate over all regexes in the ua-parser YAML file"
-    ua = yaml.load(open(file, "r", encoding="utf8"), Loader=yaml.SafeLoader)
-    for u in ua["user_agent_parsers"]:
-        yield u["regex"]
+class Regexes:
+    def __init__(self, path: str = "regexes.yaml"):
+        with open(path, "r", encoding="utf8") as f:
+            self._data = yaml.load(f, Loader=yaml.SafeLoader)
+        self._indexes = dict()
+
+    def keys(self) -> list[str]:
+        return self._data.keys()
+
+    def index(self, key) -> dict[str, list[int]]:
+        if key not in self._data:
+            raise KeyError()
+        if key not in self._indexes:
+            idx = defaultdict(list)
+            for i, r in enumerate(self._data[key]):
+                ngrams = set()
+                for t in extract_term(r['regex']):
+                    if len(t) >= 3:
+                        ngrams.update(ngram(t, 3))
+                for n in ngrams:
+                    idx[n].append(i)
+            self._indexes[key] = dict(idx)
+        return self._indexes[key]
 
 
 def ngram(txt: str | bytes, size: int):
@@ -28,44 +46,38 @@ def ngram(txt: str | bytes, size: int):
             yield txt[i : i + size]
 
 
-def walk(node: Node, ngrams=None) -> set[str]:
+def _walk(node: Node, terms=None) -> list[str]:
     "Walk over regexp parsed file"
-    if ngrams is None:
-        ngrams = set()
+    if terms is None:
+        terms = list()
     if node.type == "term":
         ok = True
         for n in node.children:
             ok = ok and n.type == "pattern_character"
-        if ok and len(node.text) >= 3:
-            nn = list(ngram(node.text.decode(), 3))
-            ngrams.update(nn)
+        if ok:
+            terms.append(node.text.decode())
     for n in node.children:
-        ngrams.union(walk(n, ngrams))
-    return ngrams
+        _walk(n, terms)  # terms is a pointer, not a value
+    return terms
 
 
-def parse_ua(regex: str | bytes) -> List[str]:
-    "Return ngrams from a regular expression"
+def extract_term(regex: str | bytes) -> List[str]:
+    "Return terms from a regular expression"
     if isinstance(regex, str):
         regex = regex.encode("utf8")
     tree = parser.parse(regex)
     node = tree.root_node
-    return walk(node)
-
-
-def parse_all():
-    idx = defaultdict(list)
-    for i, r in enumerate(regexes()):
-        ngrams = parse_ua(r)
-        for n in ngrams:
-            idx[n].append(i)
-    return dict(idx)
+    return _walk(node)
 
 
 if __name__ == "__main__":
     import json
     import sys
 
-    p = parse_all()
-    print(len(p), "ngrams", file=sys.stderr)
-    print(json.dumps(p))
+    r = Regexes()
+    for k in r.keys():
+        p = r.index(k)
+        print(k, file=sys.stderr)
+        print("\t", len(r._data[k]), "regexes", file=sys.stderr)
+        print("\t", len(p), "ngrams", file=sys.stderr)
+        print(json.dumps(p))
