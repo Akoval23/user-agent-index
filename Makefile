@@ -10,6 +10,9 @@ vendor/tree-sitter-regex/src/parser.c:
 build/my-languages.so: vendor/tree-sitter-regex/src/parser.c
 	poetry run ./build-parser.py
 
+test:
+	poetry run pytest
+
 clean:
 	rm regexes.yaml
 	rm -rf build
