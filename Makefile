@@ -1,7 +1,7 @@
 all: regexes.yaml build/my-languages.so
 
 regexes.yaml:
-	curl -O https://github.com/ua-parser/uap-core/raw/master/regexes.yaml
+	curl -O https://raw.githubusercontent.com/ua-parser/uap-core/master/regexes.yaml
 
 vendor/tree-sitter-regex/src/parser.c:
 	git submodule init
