@@ -64,5 +64,8 @@ def parse_all():
 
 if __name__ == "__main__":
     import json
+    import sys
 
-    print(json.dumps(parse_all()))
+    p = parse_all()
+    print(len(p), "ngrams", file=sys.stderr)
+    print(json.dumps(p))
