@@ -11,7 +11,7 @@ build/my-languages.so: vendor/tree-sitter-regex/src/parser.c
 	poetry run ./build-parser.py
 
 test:
-	poetry run pytest
+	poetry run pytest --cov
 
 clean:
 	rm regexes.yaml

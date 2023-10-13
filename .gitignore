@@ -2,3 +2,4 @@ build
 regexes.yaml
 __pycache__
 *.mjson
+.coverage
