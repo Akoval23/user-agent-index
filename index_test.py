@@ -6,7 +6,7 @@ def test_ngram():
 
 
 def test_parse_ua():
-    ngrams = index.extract_pattern(r"(OperationsDashboard)-(?:Windows)-(\d+)\.(\d+)\.(\d+)")
+    ngrams = index.extract_term(r"(OperationsDashboard)-(?:Windows)-(\d+)\.(\d+)\.(\d+)")
     assert ngrams == [
         "OperationsDashboard",
         "Windows",
