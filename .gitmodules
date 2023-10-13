@@ -1,0 +1,3 @@
+[submodule "vendor/tree-sitter-regex"]
+	path = vendor/tree-sitter-regex
+	url = https://github.com/tree-sitter/tree-sitter-regex.git
